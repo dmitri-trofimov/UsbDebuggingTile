@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingBottom="36dp"
+    android:background="?attr/colorSurface">
+
+    <!-- M3 Drag Handle -->
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Header: Squircle Badge + Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:cardCornerRadius="16dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="?attr/colorErrorContainer">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_error_outline"
+                app:tint="?attr/colorOnErrorContainer"
+                android:contentDescription="Permission Alert" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Permission Needed"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:fontFamily="sans-serif-black"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WRITE_SECURE_SETTINGS"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorError" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Description -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Android restricts automatic toggle to prevent unauthorized software from modifying system state. You can toggle it manually in Developer Options, or grant the permission once from your PC for 1-tap switching."
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Primary Action: M3 Tonal Button with Settings Icon (Soft, not too bright, clearly clickable) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOpenDevSettings"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Open Developer Options"
+        app:icon="@drawable/ic_settings"
+        app:iconSize="20dp"
+        app:iconPadding="10dp"
+        app:iconGravity="textStart"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:fontFamily="sans-serif-black"
+        style="@style/Widget.Material3.Button.TonalButton"
+        app:cornerRadius="28dp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Permanent Fix Section Label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Permanent 1-Tap Access via PC:"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:fontFamily="sans-serif-black"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Option 2: Sleek Joined Tonal Pill Capsule -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSheetCommandContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="18dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingVertical="12dp">
+
+            <TextView
+                android:id="@+id/textSheetCommand"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="adb shell pm grant com.antigravity.usbdebugtile android.permission.WRITE_SECURE_SETTINGS"
+                android:fontFamily="monospace"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurface"
+                android:textIsSelectable="true"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Joined Tonal Action Pill [ Copy | Share ] -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="4dp">
+
+                    <ImageView
+                        android:id="@+id/btnSheetCopy"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_content_copy"
+                        app:tint="?attr/colorOnSurfaceVariant"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Copy command"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="16dp"
+                        android:background="?attr/colorOutlineVariant"
+                        android:layout_marginHorizontal="2dp" />
+
+                    <ImageView
+                        android:id="@+id/btnSheetShare"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_share"
+                        app:tint="?attr/colorOnSurfaceVariant"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Share to PC"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="16dp"
+                        android:background="?attr/colorOutlineVariant"
+                        android:layout_marginHorizontal="2dp" />
+
+                    <ImageView
+                        android:id="@+id/btnSheetHelp"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_help_outline"
+                        app:tint="?attr/colorOnSurfaceVariant"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Why is this needed?"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Export .bat Action Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSheetExportBat"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        android:text="Export grant_permission.bat"
+        app:icon="@drawable/ic_download"
+        app:iconSize="20dp"
+        app:iconPadding="10dp"
+        app:iconGravity="textStart"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:fontFamily="sans-serif-medium"
+        style="@style/Widget.Material3.Button.TonalButton"
+        app:cornerRadius="26dp" />
+
+</LinearLayout>

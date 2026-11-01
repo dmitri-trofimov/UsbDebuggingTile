@@ -1,0 +1,11 @@
+<resources>
+    <!-- Base Material 3 Theme (Night) -->
+    <style name="Theme.UsbDebugTile" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Let Material 3 Dynamic Colors adapt to Samsung One UI color palette -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+</resources>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">USB Debugging</string>
+    <string name="tile_label">USB Debugging</string>
+    <string name="status_title">USB Debugging Status</string>
+    <string name="status_permission_granted">Permission WRITE_SECURE_SETTINGS: GRANTED</string>
+    <string name="status_permission_missing">Permission WRITE_SECURE_SETTINGS: MISSING</string>
+    <string name="guide_title">Setup Instructions</string>
+</resources>
