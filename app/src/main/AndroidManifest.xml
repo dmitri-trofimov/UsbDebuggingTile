@@ -3,6 +3,7 @@
 
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -53,7 +54,7 @@
         <!-- Receiver for auto-disable alarm trigger -->
         <receiver
             android:name=".AutoDisableReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.antigravity.usbdebugtile.action.AUTO_DISABLE" />
             </intent-filter>

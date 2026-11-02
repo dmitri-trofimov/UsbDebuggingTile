@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.hardware.usb.UsbManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.SystemClock;
@@ -54,7 +53,11 @@ public class AutoDisableManager {
     public static void setTimeoutMinutes(Context context, int minutes) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().putInt(KEY_TIMEOUT_MINUTES, minutes).apply();
-        updateAutoDisableState(context);
+        // If cable is currently disconnected and ADB is active, restart countdown with new duration
+        if (isAutoDisableEnabled(context) && UsbDebugTileService.isAdbEnabled(context) && !isUsbConnected(context)) {
+            cancelTimeout(context);
+            scheduleTimeout(context, minutes * 60L * 1000L);
+        }
     }
 
     /**
@@ -86,6 +89,7 @@ public class AutoDisableManager {
 
     /**
      * Core state machine: evaluates whether to start a countdown or cancel any pending timeout.
+     * Prevents resetting active countdowns if multiple broadcasts arrive while unplugged.
      */
     public static void updateAutoDisableState(Context context) {
         boolean enabled = isAutoDisableEnabled(context);
@@ -100,13 +104,23 @@ public class AutoDisableManager {
         }
 
         if (isConnected) {
-            // Cable is connected and ADB is active -> user is developing normally, cancel pending timeout
+            // Cable is connected and ADB is active -> developer working normally, cancel pending timeout
             cancelTimeout(context);
         } else {
-            // Cable is DISCONNECTED and ADB is active -> schedule or refresh timeout alarm!
-            int timeoutMinutes = getTimeoutMinutes(context);
-            long delayMillis = timeoutMinutes * 60L * 1000L;
-            scheduleTimeout(context, delayMillis);
+            // Cable is DISCONNECTED and ADB is active
+            int remainingSec = getRemainingSeconds(context);
+            if (remainingSec == 0) {
+                // Countdown already reached 0! Disable ADB immediately
+                executeAutoDisable(context);
+            } else if (remainingSec < 0) {
+                // No countdown currently running, start a fresh one!
+                int timeoutMinutes = getTimeoutMinutes(context);
+                long delayMillis = timeoutMinutes * 60L * 1000L;
+                scheduleTimeout(context, delayMillis);
+            } else {
+                // Countdown is ALREADY running (e.g. 58s remaining), preserve existing timer
+                Log.d(TAG, "Countdown already active (" + remainingSec + "s remaining). Preserving timer.");
+            }
         }
     }
 
@@ -122,6 +136,7 @@ public class AutoDisableManager {
 
         Intent intent = new Intent(context, AutoDisableReceiver.class);
         intent.setAction(ACTION_AUTO_DISABLE);
+        intent.setPackage(context.getPackageName());
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
                 0,
@@ -130,17 +145,11 @@ public class AutoDisableManager {
         );
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (alarmManager.canScheduleExactAlarms()) {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerElapsed, pendingIntent);
-                } else {
-                    alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerElapsed, pendingIntent);
-                }
-            } else {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerElapsed, pendingIntent);
-            }
-            Log.d(TAG, "Scheduled auto-disable alarm for " + (delayMillis / 1000) + " seconds from now");
+            // setExactAndAllowWhileIdle works seamlessly with USE_EXACT_ALARM on Android 13+
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerElapsed, pendingIntent);
+            Log.i(TAG, "Scheduled EXACT auto-disable alarm for " + (delayMillis / 1000) + " seconds from now");
         } catch (SecurityException e) {
+            Log.w(TAG, "Exact alarm permission missing, falling back to setAndAllowWhileIdle", e);
             alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerElapsed, pendingIntent);
         }
     }
@@ -150,6 +159,7 @@ public class AutoDisableManager {
         if (alarmManager != null) {
             Intent intent = new Intent(context, AutoDisableReceiver.class);
             intent.setAction(ACTION_AUTO_DISABLE);
+            intent.setPackage(context.getPackageName());
             PendingIntent pendingIntent = PendingIntent.getBroadcast(
                     context,
                     0,
@@ -168,7 +178,61 @@ public class AutoDisableManager {
     }
 
     /**
-     * Returns remaining seconds until auto-disable, or -1 if not currently counting down.
+     * Executes the actual disable action with full safety verification.
+     * Can be invoked directly from AutoDisableReceiver or MainActivity when countdown hits 0.
+     */
+    public static synchronized void executeAutoDisable(Context context) {
+        boolean enabled = isAutoDisableEnabled(context);
+        boolean isConnected = isUsbConnected(context);
+        boolean isAdbOn = UsbDebugTileService.isAdbEnabled(context);
+
+        Log.d(TAG, "executeAutoDisable: enabled=" + enabled + ", connected=" + isConnected + ", adb=" + isAdbOn);
+
+        if (!enabled) return;
+        if (isConnected) {
+            cancelTimeout(context);
+            return;
+        }
+        if (!isAdbOn) {
+            cancelTimeout(context);
+            return;
+        }
+
+        if (!UsbDebugTileService.hasSecureSettingsPermission(context)) {
+            Log.e(TAG, "Cannot auto-disable ADB: WRITE_SECURE_SETTINGS permission missing!");
+            return;
+        }
+
+        try {
+            // Flip ADB off at system level
+            Settings.Global.putInt(
+                    context.getContentResolver(),
+                    Settings.Global.ADB_ENABLED,
+                    0
+            );
+            Log.i(TAG, "SUCCESS: USB Debugging automatically disabled!");
+
+            // Update Quick Settings Tile
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                TileService.requestListeningState(
+                        context,
+                        new ComponentName(context, UsbDebugTileService.class)
+                );
+            }
+
+            cancelTimeout(context);
+            showAutoDisabledNotification(context);
+
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException while disabling ADB automatically", e);
+        }
+    }
+
+    /**
+     * Returns remaining seconds until auto-disable:
+     *  > 0 : active countdown
+     *  == 0: countdown has expired
+     *  < 0 : no countdown currently scheduled
      */
     public static int getRemainingSeconds(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

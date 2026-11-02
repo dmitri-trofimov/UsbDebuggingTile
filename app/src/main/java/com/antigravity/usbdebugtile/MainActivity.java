@@ -927,9 +927,14 @@ public class MainActivity extends AppCompatActivity {
             int seconds = remainingSeconds % 60;
             textAutoDisableStatus.setText(String.format("Unplugged • Auto-disabling in %d:%02d", minutes, seconds));
             textAutoDisableStatus.setTextColor(colorError);
-        } else {
+        } else if (remainingSeconds == 0) {
             textAutoDisableStatus.setText("Unplugged • Disabling USB debugging...");
             textAutoDisableStatus.setTextColor(colorError);
+            AutoDisableManager.executeAutoDisable(this);
+            updateUi();
+        } else {
+            textAutoDisableStatus.setText("Armed • Waiting for disconnect");
+            textAutoDisableStatus.setTextColor(colorOnSurfaceVariant);
         }
     }
 
