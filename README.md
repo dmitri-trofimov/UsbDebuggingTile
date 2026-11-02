@@ -9,7 +9,8 @@ Designed to mirror the native Android **Wireless debugging** tile, it allows dev
 ## Features
 
 - ⚡ **1-Tap Quick Settings Tile**: Toggle USB Debugging (`adb`) directly from the notification shade without digging through nested Developer Options menus.
-- ⏱️ **Auto-Lock on Disconnect**: Automatically turns off USB Debugging when the USB cable is unplugged for a configurable timeout (`1 min`, `5 min`, `10 min`, `15 min`, `30 min`) so your device never stays exposed after unplugging from your PC.
+- ⏱️ **Auto-Lock on Disconnect**: Automatically turns off USB Debugging when the USB cable is unplugged for a configurable timeout (`1 min`, `5 min`, `10 min`, `15 min`, `30 min`, `1 hour`) so your device never stays exposed after unplugging from your PC.
+  - Interactive **Material 3 Slider** control with discrete step snapping and haptic feedback.
   - Background-resilient via kernel hardware broadcasts and Doze-exempt wakeup alarms (`AlarmManager.setExactAndAllowWhileIdle`).
   - Real-time countdown ticker in the companion app.
   - Security notification alert when the physical port is secured.

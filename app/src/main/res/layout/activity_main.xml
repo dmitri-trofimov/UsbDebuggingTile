@@ -753,59 +753,94 @@
                             android:layout_marginTop="12dp"
                             android:layout_marginBottom="10dp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Inactivity Timeout"
-                            android:textAppearance="?attr/textAppearanceLabelSmall"
-                            android:fontFamily="sans-serif-black"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:layout_marginBottom="8dp" />
-
-                        <!-- Chip Group with 1m, 5m, 10m, 15m, 30m -->
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipGroupTimeout"
+                        <!-- Header Row for Slider: Label + Active Value Badge -->
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:singleSelection="true"
-                            app:selectionRequired="true"
-                            android:layout_marginBottom="8dp">
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="4dp">
 
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipTimeout1m"
-                                style="@style/Widget.Material3.Chip.Filter"
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Inactivity Timeout"
+                                android:textAppearance="?attr/textAppearanceLabelMedium"
+                                android:fontFamily="sans-serif-bold"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/badgeTimeoutValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="1 min" />
+                                app:cardCornerRadius="10dp"
+                                app:strokeWidth="0dp"
+                                app:cardBackgroundColor="?attr/colorPrimaryContainer">
 
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipTimeout5m"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="5 min" />
+                                <TextView
+                                    android:id="@+id/textTimeoutValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:paddingStart="10dp"
+                                    android:paddingEnd="10dp"
+                                    android:paddingTop="3dp"
+                                    android:paddingBottom="3dp"
+                                    android:text="10 min"
+                                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                                    android:fontFamily="sans-serif-black"
+                                    android:textColor="?attr/colorOnPrimaryContainer" />
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
 
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipTimeout10m"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="10 min" />
+                        <!-- Discrete M3 Slider for: 1m, 5m, 10m, 15m, 30m, 1h (values 0..5) -->
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/sliderTimeout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="0.0"
+                            android:valueTo="5.0"
+                            android:stepSize="1.0"
+                            android:value="2.0"
+                            app:tickVisible="true"
+                            android:contentDescription="Timeout slider" />
 
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipTimeout15m"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="15 min" />
+                        <!-- Slider Ticks / Edge Markers -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:layout_marginTop="-4dp"
+                            android:layout_marginBottom="12dp">
 
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipTimeout30m"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
+                            <TextView
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="30 min" />
-                        </com.google.android.material.chip.ChipGroup>
+                                android:layout_weight="1"
+                                android:text="1m"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:text="10m"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end"
+                                android:text="1h"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
 
                         <!-- Dynamic Status/Countdown Text -->
                         <TextView

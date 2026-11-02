@@ -32,7 +32,30 @@ public class AutoDisableManager {
     public static final int NOTIFICATION_ID_AUTO_DISABLED = 1001;
 
     public static final int DEFAULT_TIMEOUT_MINUTES = 10;
-    public static final int[] TIMEOUT_OPTIONS = {1, 5, 10, 15, 30};
+    public static final int[] TIMEOUT_OPTIONS = {1, 5, 10, 15, 30, 60};
+
+    public static int getTimeoutForIndex(int index) {
+        if (index < 0) index = 0;
+        if (index >= TIMEOUT_OPTIONS.length) index = TIMEOUT_OPTIONS.length - 1;
+        return TIMEOUT_OPTIONS[index];
+    }
+
+    public static int getIndexForTimeout(int minutes) {
+        for (int i = 0; i < TIMEOUT_OPTIONS.length; i++) {
+            if (TIMEOUT_OPTIONS[i] == minutes) return i;
+        }
+        return 2; // Default 10 min
+    }
+
+    public static String formatTimeout(int minutes) {
+        if (minutes == 60) return "1 hour";
+        return minutes + " min";
+    }
+
+    public static String formatTimeoutShort(int minutes) {
+        if (minutes == 60) return "1h";
+        return minutes + "m";
+    }
 
     public static boolean isAutoDisableEnabled(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

@@ -3,8 +3,7 @@ package com.antigravity.usbdebugtile;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.slider.Slider;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
@@ -159,15 +158,11 @@ public class MainActivity extends AppCompatActivity {
     private View layoutAutoDisableHeader;
     private MaterialSwitch switchAutoDisable;
     private View layoutAutoDisableDetails;
-    private ChipGroup chipGroupTimeout;
-    private Chip chipTimeout1m;
-    private Chip chipTimeout5m;
-    private Chip chipTimeout10m;
-    private Chip chipTimeout15m;
-    private Chip chipTimeout30m;
+    private Slider sliderTimeout;
+    private TextView textTimeoutValue;
     private TextView textAutoDisableStatus;
 
-    private boolean isSyncingChips = false;
+    private boolean isSyncingSlider = false;
     private final Handler countdownHandler = new Handler(Looper.getMainLooper());
     private final Runnable countdownRunnable = new Runnable() {
         @Override
@@ -269,12 +264,8 @@ public class MainActivity extends AppCompatActivity {
         layoutAutoDisableHeader = findViewById(R.id.layoutAutoDisableHeader);
         switchAutoDisable = findViewById(R.id.switchAutoDisable);
         layoutAutoDisableDetails = findViewById(R.id.layoutAutoDisableDetails);
-        chipGroupTimeout = findViewById(R.id.chipGroupTimeout);
-        chipTimeout1m = findViewById(R.id.chipTimeout1m);
-        chipTimeout5m = findViewById(R.id.chipTimeout5m);
-        chipTimeout10m = findViewById(R.id.chipTimeout10m);
-        chipTimeout15m = findViewById(R.id.chipTimeout15m);
-        chipTimeout30m = findViewById(R.id.chipTimeout30m);
+        sliderTimeout = findViewById(R.id.sliderTimeout);
+        textTimeoutValue = findViewById(R.id.textTimeoutValue);
         textAutoDisableStatus = findViewById(R.id.textAutoDisableStatus);
 
         if (switchAutoDisable != null) {
@@ -301,13 +292,23 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        if (chipGroupTimeout != null) {
-            chipGroupTimeout.setOnCheckedStateChangeListener((group, checkedIds) -> {
-                if (isSyncingChips || checkedIds.isEmpty()) return;
-                int checkedId = checkedIds.get(0);
-                int minutes = getTimeoutForChipId(checkedId);
-                AutoDisableManager.setTimeoutMinutes(this, minutes);
-                updateAutoDisableCountdown();
+        if (sliderTimeout != null) {
+            sliderTimeout.setLabelFormatter(value -> {
+                int idx = Math.round(value);
+                int mins = AutoDisableManager.getTimeoutForIndex(idx);
+                return AutoDisableManager.formatTimeoutShort(mins);
+            });
+
+            sliderTimeout.addOnChangeListener((slider, value, fromUser) -> {
+                int idx = Math.round(value);
+                int mins = AutoDisableManager.getTimeoutForIndex(idx);
+                if (textTimeoutValue != null) {
+                    textTimeoutValue.setText(AutoDisableManager.formatTimeout(mins));
+                }
+                if (fromUser && !isSyncingSlider) {
+                    AutoDisableManager.setTimeoutMinutes(this, mins);
+                    updateAutoDisableCountdown();
+                }
             });
         }
 
@@ -880,13 +881,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        if (chipGroupTimeout != null) {
+        if (sliderTimeout != null) {
             int currentTimeout = AutoDisableManager.getTimeoutMinutes(this);
-            int targetChipId = getChipIdForTimeout(currentTimeout);
-            if (chipGroupTimeout.getCheckedChipId() != targetChipId) {
-                isSyncingChips = true;
-                chipGroupTimeout.check(targetChipId);
-                isSyncingChips = false;
+            int targetIdx = AutoDisableManager.getIndexForTimeout(currentTimeout);
+            if (Math.round(sliderTimeout.getValue()) != targetIdx) {
+                isSyncingSlider = true;
+                sliderTimeout.setValue(targetIdx);
+                isSyncingSlider = false;
+            }
+            if (textTimeoutValue != null) {
+                textTimeoutValue.setText(AutoDisableManager.formatTimeout(currentTimeout));
             }
         }
 
@@ -923,9 +927,13 @@ public class MainActivity extends AppCompatActivity {
 
         int remainingSeconds = AutoDisableManager.getRemainingSeconds(this);
         if (remainingSeconds > 0) {
-            int minutes = remainingSeconds / 60;
+            int hours = remainingSeconds / 3600;
+            int minutes = (remainingSeconds % 3600) / 60;
             int seconds = remainingSeconds % 60;
-            textAutoDisableStatus.setText(String.format("Unplugged • Auto-disabling in %d:%02d", minutes, seconds));
+            String timeStr = hours > 0
+                    ? String.format("%d:%02d:%02d", hours, minutes, seconds)
+                    : String.format("%d:%02d", minutes, seconds);
+            textAutoDisableStatus.setText("Unplugged • Auto-disabling in " + timeStr);
             textAutoDisableStatus.setTextColor(colorError);
         } else if (remainingSeconds == 0) {
             textAutoDisableStatus.setText("Unplugged • Disabling USB debugging...");
@@ -938,21 +946,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private int getTimeoutForChipId(int chipId) {
-        if (chipId == R.id.chipTimeout1m) return 1;
-        if (chipId == R.id.chipTimeout5m) return 5;
-        if (chipId == R.id.chipTimeout10m) return 10;
-        if (chipId == R.id.chipTimeout15m) return 15;
-        if (chipId == R.id.chipTimeout30m) return 30;
-        return AutoDisableManager.DEFAULT_TIMEOUT_MINUTES;
-    }
 
-    private int getChipIdForTimeout(int minutes) {
-        if (minutes == 1) return R.id.chipTimeout1m;
-        if (minutes == 5) return R.id.chipTimeout5m;
-        if (minutes == 10) return R.id.chipTimeout10m;
-        if (minutes == 15) return R.id.chipTimeout15m;
-        if (minutes == 30) return R.id.chipTimeout30m;
-        return R.id.chipTimeout10m;
-    }
 }
