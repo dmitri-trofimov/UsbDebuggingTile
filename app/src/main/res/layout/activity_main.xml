@@ -805,42 +805,83 @@
                             app:tickVisible="true"
                             android:contentDescription="Timeout slider" />
 
-                        <!-- Slider Ticks / Edge Markers -->
-                        <LinearLayout
+                        <!-- Slider Tick Labels (All 6 values evenly aligned to ticks) -->
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layoutSliderLabels"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
                             android:paddingStart="12dp"
                             android:paddingEnd="12dp"
                             android:layout_marginTop="-4dp"
                             android:layout_marginBottom="12dp">
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:id="@+id/labelTimeout1m"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="1m"
                                 android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintEnd_toStartOf="@id/labelTimeout5m"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintHorizontal_chainStyle="spread_inside" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:id="@+id/labelTimeout5m"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:gravity="center"
+                                android:text="5m"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                app:layout_constraintStart_toEndOf="@id/labelTimeout1m"
+                                app:layout_constraintEnd_toStartOf="@id/labelTimeout10m"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/labelTimeout10m"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:text="10m"
                                 android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                app:layout_constraintStart_toEndOf="@id/labelTimeout5m"
+                                app:layout_constraintEnd_toStartOf="@id/labelTimeout15m"
+                                app:layout_constraintTop_toTopOf="parent" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:id="@+id/labelTimeout15m"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:gravity="end"
+                                android:text="15m"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                app:layout_constraintStart_toEndOf="@id/labelTimeout10m"
+                                app:layout_constraintEnd_toStartOf="@id/labelTimeout30m"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/labelTimeout30m"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="30m"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                app:layout_constraintStart_toEndOf="@id/labelTimeout15m"
+                                app:layout_constraintEnd_toStartOf="@id/labelTimeout1h"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/labelTimeout1h"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:text="1h"
                                 android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
-                        </LinearLayout>
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                app:layout_constraintStart_toEndOf="@id/labelTimeout30m"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
 
                         <!-- Dynamic Status/Countdown Text -->
                         <TextView
