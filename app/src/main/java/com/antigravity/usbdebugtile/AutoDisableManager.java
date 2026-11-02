@@ -28,6 +28,7 @@ public class AutoDisableManager {
     public static final String KEY_TRIGGER_REALTIME = "key_trigger_realtime";
 
     public static final String ACTION_AUTO_DISABLE = "com.antigravity.usbdebugtile.action.AUTO_DISABLE";
+    public static final String ACTION_RE_ENABLE = "com.antigravity.usbdebugtile.action.RE_ENABLE";
     public static final String CHANNEL_ID_SECURITY = "channel_security_alerts";
     public static final int NOTIFICATION_ID_AUTO_DISABLED = 1001;
 
@@ -286,6 +287,7 @@ public class AutoDisableManager {
     public static void showAutoDisabledNotification(Context context) {
         createNotificationChannel(context);
 
+        // Body tap -> open MainActivity
         Intent openIntent = new Intent(context, MainActivity.class);
         openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -295,12 +297,50 @@ public class AutoDisableManager {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        // Action 1: Re-enable ADB (Requires fingerprint / PIN unlock on lock screen)
+        Intent reEnableIntent = new Intent(context, AutoDisableReceiver.class);
+        reEnableIntent.setAction(ACTION_RE_ENABLE);
+        reEnableIntent.setPackage(context.getPackageName());
+        PendingIntent pendingReEnable = PendingIntent.getBroadcast(
+                context,
+                1,
+                reEnableIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Action reEnableAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_qs_adb,
+                "Re-enable",
+                pendingReEnable
+        ).setAuthenticationRequired(true).build();
+
+        // Action 2: Settings (Opens companion app, requires unlock)
+        Intent settingsIntent = new Intent(context, MainActivity.class);
+        settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingSettings = PendingIntent.getActivity(
+                context,
+                2,
+                settingsIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Action settingsAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_timer,
+                "Settings",
+                pendingSettings
+        ).setAuthenticationRequired(true).build();
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_SECURITY)
                 .setSmallIcon(R.drawable.ic_qs_adb)
                 .setContentTitle("USB Debugging Auto-Disabled")
                 .setContentText("Physical USB port secured after disconnect timeout.")
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText("Physical USB port secured after disconnect timeout."))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
+                .addAction(reEnableAction)
+                .addAction(settingsAction)
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                 .setAutoCancel(true);
 
         try {

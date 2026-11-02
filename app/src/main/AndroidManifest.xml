@@ -51,12 +51,13 @@
             </intent-filter>
         </receiver>
 
-        <!-- Receiver for auto-disable alarm trigger -->
+        <!-- Receiver for auto-disable alarm trigger and notification actions -->
         <receiver
             android:name=".AutoDisableReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.antigravity.usbdebugtile.action.AUTO_DISABLE" />
+                <action android:name="com.antigravity.usbdebugtile.action.RE_ENABLE" />
             </intent-filter>
         </receiver>
 
