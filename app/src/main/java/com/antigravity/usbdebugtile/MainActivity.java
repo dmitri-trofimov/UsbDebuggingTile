@@ -1,6 +1,10 @@
 package com.antigravity.usbdebugtile;
 
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
@@ -148,6 +152,39 @@ public class MainActivity extends AppCompatActivity {
     private ContentObserver autoBlockerObserver;
     private BottomSheetDialog permissionBottomSheet;
 
+    // Port Security & Auto-Disable Views
+    private MaterialCardView cardAutoDisableContainer;
+    private MaterialCardView cardIconAutoDisable;
+    private ImageView iconAutoDisable;
+    private View layoutAutoDisableHeader;
+    private MaterialSwitch switchAutoDisable;
+    private View layoutAutoDisableDetails;
+    private ChipGroup chipGroupTimeout;
+    private Chip chipTimeout1m;
+    private Chip chipTimeout5m;
+    private Chip chipTimeout10m;
+    private Chip chipTimeout15m;
+    private Chip chipTimeout30m;
+    private TextView textAutoDisableStatus;
+
+    private boolean isSyncingChips = false;
+    private final Handler countdownHandler = new Handler(Looper.getMainLooper());
+    private final Runnable countdownRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateAutoDisableCountdown();
+            countdownHandler.postDelayed(this, 1000);
+        }
+    };
+
+    private final BroadcastReceiver usbHardwareReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            AutoDisableManager.updateAutoDisableState(context);
+            updateUi();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Enable Material Design 3 Dynamic Colors (Material You)
@@ -225,6 +262,56 @@ public class MainActivity extends AppCompatActivity {
         btnMainShareGrant = findViewById(R.id.btnMainShareGrant);
         btnMainHelpGrant = findViewById(R.id.btnMainHelpGrant);
 
+        // Auto-Disable Views
+        cardAutoDisableContainer = findViewById(R.id.cardAutoDisableContainer);
+        cardIconAutoDisable = findViewById(R.id.cardIconAutoDisable);
+        iconAutoDisable = findViewById(R.id.iconAutoDisable);
+        layoutAutoDisableHeader = findViewById(R.id.layoutAutoDisableHeader);
+        switchAutoDisable = findViewById(R.id.switchAutoDisable);
+        layoutAutoDisableDetails = findViewById(R.id.layoutAutoDisableDetails);
+        chipGroupTimeout = findViewById(R.id.chipGroupTimeout);
+        chipTimeout1m = findViewById(R.id.chipTimeout1m);
+        chipTimeout5m = findViewById(R.id.chipTimeout5m);
+        chipTimeout10m = findViewById(R.id.chipTimeout10m);
+        chipTimeout15m = findViewById(R.id.chipTimeout15m);
+        chipTimeout30m = findViewById(R.id.chipTimeout30m);
+        textAutoDisableStatus = findViewById(R.id.textAutoDisableStatus);
+
+        if (switchAutoDisable != null) {
+            switchAutoDisable.setThumbIconDrawable(null);
+        }
+
+        if (layoutAutoDisableHeader != null) {
+            layoutAutoDisableHeader.setOnClickListener(v -> {
+                if (switchAutoDisable != null) {
+                    switchAutoDisable.toggle();
+                }
+            });
+        }
+
+        if (switchAutoDisable != null) {
+            switchAutoDisable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                AutoDisableManager.setAutoDisableEnabled(this, isChecked);
+                if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+                    }
+                }
+                updateUi();
+            });
+        }
+
+        if (chipGroupTimeout != null) {
+            chipGroupTimeout.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (isSyncingChips || checkedIds.isEmpty()) return;
+                int checkedId = checkedIds.get(0);
+                int minutes = getTimeoutForChipId(checkedId);
+                AutoDisableManager.setTimeoutMinutes(this, minutes);
+                updateAutoDisableCountdown();
+            });
+        }
+
+
         // Click Listeners
         // Entire Hero Card acts as the master toggle switch (One UI style)
         cardHero.setOnClickListener(v -> handleToggleClick());
@@ -255,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
         adbObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
             @Override
             public void onChange(boolean selfChange, Uri uri) {
+                AutoDisableManager.updateAutoDisableState(MainActivity.this);
                 updateUi();
             }
         };
@@ -299,6 +387,18 @@ public class MainActivity extends AppCompatActivity {
                 false,
                 autoBlockerObserver
         );
+
+        // USB connection receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        filter.addAction("android.hardware.usb.action.USB_STATE");
+        registerReceiver(usbHardwareReceiver, filter);
+
+        // Start countdown ticker
+        countdownHandler.removeCallbacks(countdownRunnable);
+        countdownHandler.post(countdownRunnable);
+
         updateUi();
 
         // Dismiss modal if permission was granted while app was in background
@@ -313,6 +413,15 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         getContentResolver().unregisterContentObserver(adbObserver);
         getContentResolver().unregisterContentObserver(autoBlockerObserver);
+
+        // Stop countdown ticker
+        countdownHandler.removeCallbacks(countdownRunnable);
+
+        // Unregister USB receiver
+        try {
+            unregisterReceiver(usbHardwareReceiver);
+        } catch (Exception ignored) {
+        }
     }
 
     private void handleToggleClick() {
@@ -333,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
                     targetState ? 1 : 0
             );
             showSnackbar(targetState ? "USB Debugging Enabled" : "USB Debugging Disabled");
+            AutoDisableManager.updateAutoDisableState(this);
         } catch (SecurityException e) {
             showPermissionBottomSheet();
         }
@@ -541,6 +651,10 @@ public class MainActivity extends AppCompatActivity {
                 textSectionStatus.setText("Device Status & Actions");
             }
         }
+
+        // 5. Port Security & Auto-Disable UI
+        updateAutoDisableUi(colorPrimary, colorOnPrimary, colorPrimaryContainer,
+                colorOnPrimaryContainer, colorSurfaceContainerHighest, colorOnSurfaceVariant, colorError);
     }
 
     public static boolean isAutoBlockerActive(Context context) {
@@ -721,5 +835,119 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(formattedMessage)
                 .setPositiveButton("Understood", null)
                 .show();
+    }
+
+    private void updateAutoDisableUi(int colorPrimary, int colorOnPrimary,
+                                     int colorPrimaryContainer, int colorOnPrimaryContainer,
+                                     int colorSurfaceContainerHighest, int colorOnSurfaceVariant,
+                                     int colorError) {
+        if (switchAutoDisable == null) return;
+
+        boolean isAutoDisableOn = AutoDisableManager.isAutoDisableEnabled(this);
+
+        // Temporarily detach listener to prevent feedback loop
+        switchAutoDisable.setOnCheckedChangeListener(null);
+        switchAutoDisable.setChecked(isAutoDisableOn);
+        switchAutoDisable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            AutoDisableManager.setAutoDisableEnabled(this, isChecked);
+            if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+                }
+            }
+            updateUi();
+        });
+
+        if (isAutoDisableOn) {
+            if (cardIconAutoDisable != null) {
+                cardIconAutoDisable.setCardBackgroundColor(colorPrimaryContainer);
+            }
+            if (iconAutoDisable != null) {
+                iconAutoDisable.setColorFilter(colorOnPrimaryContainer);
+            }
+            if (layoutAutoDisableDetails != null) {
+                layoutAutoDisableDetails.setVisibility(View.VISIBLE);
+            }
+        } else {
+            if (cardIconAutoDisable != null) {
+                cardIconAutoDisable.setCardBackgroundColor(colorSurfaceContainerHighest);
+            }
+            if (iconAutoDisable != null) {
+                iconAutoDisable.setColorFilter(colorOnSurfaceVariant);
+            }
+            if (layoutAutoDisableDetails != null) {
+                layoutAutoDisableDetails.setVisibility(View.GONE);
+            }
+        }
+
+        if (chipGroupTimeout != null) {
+            int currentTimeout = AutoDisableManager.getTimeoutMinutes(this);
+            int targetChipId = getChipIdForTimeout(currentTimeout);
+            if (chipGroupTimeout.getCheckedChipId() != targetChipId) {
+                isSyncingChips = true;
+                chipGroupTimeout.check(targetChipId);
+                isSyncingChips = false;
+            }
+        }
+
+        updateAutoDisableCountdown();
+    }
+
+    private void updateAutoDisableCountdown() {
+        if (textAutoDisableStatus == null) return;
+
+        boolean isAutoDisableOn = AutoDisableManager.isAutoDisableEnabled(this);
+        int colorOnSurfaceVariant = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant, 0);
+        int colorPrimary = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, 0);
+        int colorError = MaterialColors.getColor(this, com.google.android.material.R.attr.colorError, 0);
+
+        if (!isAutoDisableOn) {
+            textAutoDisableStatus.setText("Auto-lock is disabled");
+            textAutoDisableStatus.setTextColor(colorOnSurfaceVariant);
+            return;
+        }
+
+        boolean isAdbOn = UsbDebugTileService.isAdbEnabled(this);
+        if (!isAdbOn) {
+            textAutoDisableStatus.setText("Armed • Will activate when USB debugging is enabled");
+            textAutoDisableStatus.setTextColor(colorOnSurfaceVariant);
+            return;
+        }
+
+        boolean isUsbConnected = AutoDisableManager.isUsbConnected(this);
+        if (isUsbConnected) {
+            textAutoDisableStatus.setText("USB cable connected • Port actively in use");
+            textAutoDisableStatus.setTextColor(colorPrimary);
+            return;
+        }
+
+        int remainingSeconds = AutoDisableManager.getRemainingSeconds(this);
+        if (remainingSeconds > 0) {
+            int minutes = remainingSeconds / 60;
+            int seconds = remainingSeconds % 60;
+            textAutoDisableStatus.setText(String.format("Unplugged • Auto-disabling in %d:%02d", minutes, seconds));
+            textAutoDisableStatus.setTextColor(colorError);
+        } else {
+            textAutoDisableStatus.setText("Unplugged • Disabling USB debugging...");
+            textAutoDisableStatus.setTextColor(colorError);
+        }
+    }
+
+    private int getTimeoutForChipId(int chipId) {
+        if (chipId == R.id.chipTimeout1m) return 1;
+        if (chipId == R.id.chipTimeout5m) return 5;
+        if (chipId == R.id.chipTimeout10m) return 10;
+        if (chipId == R.id.chipTimeout15m) return 15;
+        if (chipId == R.id.chipTimeout30m) return 30;
+        return AutoDisableManager.DEFAULT_TIMEOUT_MINUTES;
+    }
+
+    private int getChipIdForTimeout(int minutes) {
+        if (minutes == 1) return R.id.chipTimeout1m;
+        if (minutes == 5) return R.id.chipTimeout5m;
+        if (minutes == 10) return R.id.chipTimeout10m;
+        if (minutes == 15) return R.id.chipTimeout15m;
+        if (minutes == 30) return R.id.chipTimeout30m;
+        return R.id.chipTimeout10m;
     }
 }

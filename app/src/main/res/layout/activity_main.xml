@@ -642,6 +642,184 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            
+            <!-- SECTION: Port Security & Automation Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Port Security &amp; Automation"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <!-- CARD: Auto-Disable Timeout -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAutoDisableContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="28dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                android:layout_marginBottom="12dp"
+                android:animateLayoutChanges="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Header Row: Icon + Title/Subtitle + Switch -->
+                    <LinearLayout
+                        android:id="@+id/layoutAutoDisableHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardIconAutoDisable"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            app:cardCornerRadius="14dp"
+                            app:strokeWidth="0dp"
+                            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+
+                            <ImageView
+                                android:id="@+id/iconAutoDisable"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_timer"
+                                app:tint="?attr/colorOnSurfaceVariant"
+                                android:contentDescription="Auto-Lock Icon" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="14dp"
+                            android:layout_marginEnd="10dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Auto-Lock on Disconnect"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                android:fontFamily="sans-serif-bold"
+                                android:textColor="?attr/colorOnSurface" />
+
+                            <TextView
+                                android:id="@+id/textAutoDisableSubtitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Disable debugging when cable is unplugged"
+                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchAutoDisable"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:thumbIcon="@null" />
+                    </LinearLayout>
+
+                    <!-- Expandable Details: Inactivity Timeout Chips & Status -->
+                    <LinearLayout
+                        android:id="@+id/layoutAutoDisableDetails"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Inset Hairline Divider -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="?attr/colorOutlineVariant"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Inactivity Timeout"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:fontFamily="sans-serif-black"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginBottom="8dp" />
+
+                        <!-- Chip Group with 1m, 5m, 10m, 15m, 30m -->
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupTimeout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:singleSelection="true"
+                            app:selectionRequired="true"
+                            android:layout_marginBottom="8dp">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipTimeout1m"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="1 min" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipTimeout5m"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="5 min" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipTimeout10m"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="10 min" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipTimeout15m"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="15 min" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipTimeout30m"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="30 min" />
+                        </com.google.android.material.chip.ChipGroup>
+
+                        <!-- Dynamic Status/Countdown Text -->
+                        <TextView
+                            android:id="@+id/textAutoDisableStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Arms automatically when USB debugging is enabled"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- SECTION 3: 1-Click Master Batch Export (Visible when any setup is pending) -->
             <LinearLayout
                 android:id="@+id/layoutExportScriptSection"

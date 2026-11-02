@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -36,6 +38,26 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
+
+        <!-- Receiver for physical cable connect/disconnect events -->
+        <receiver
+            android:name=".UsbReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+                <action android:name="android.hardware.usb.action.USB_STATE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Receiver for auto-disable alarm trigger -->
+        <receiver
+            android:name=".AutoDisableReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.antigravity.usbdebugtile.action.AUTO_DISABLE" />
+            </intent-filter>
+        </receiver>
 
     </application>
 </manifest>

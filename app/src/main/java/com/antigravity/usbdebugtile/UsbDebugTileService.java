@@ -31,6 +31,7 @@ public class UsbDebugTileService extends TileService {
                 @Override
                 public void onChange(boolean selfChange, Uri uri) {
                     updateTileState();
+                    AutoDisableManager.updateAutoDisableState(UsbDebugTileService.this);
                 }
             };
             getContentResolver().registerContentObserver(
@@ -84,6 +85,7 @@ public class UsbDebugTileService extends TileService {
         }
 
         updateTileState();
+        AutoDisableManager.updateAutoDisableState(this);
     }
 
     private void openMainActivity(boolean showPermissionModal) {
