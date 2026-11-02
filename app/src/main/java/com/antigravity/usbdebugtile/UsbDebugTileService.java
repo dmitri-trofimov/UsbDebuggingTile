@@ -14,7 +14,6 @@ import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
-import android.widget.Toast;
 
 public class UsbDebugTileService extends TileService {
 
@@ -74,11 +73,6 @@ public class UsbDebugTileService extends TileService {
                     Settings.Global.ADB_ENABLED,
                     targetState ? 1 : 0
             );
-            Toast.makeText(
-                    this,
-                    targetState ? "USB Debugging Enabled" : "USB Debugging Disabled",
-                    Toast.LENGTH_SHORT
-            ).show();
         } catch (SecurityException e) {
             Log.e(TAG, "SecurityException while toggling ADB", e);
             openMainActivity(true);
